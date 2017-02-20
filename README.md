@@ -1,5 +1,7 @@
 ## Fast Style Transfer in [TensorFlow](https://github.com/tensorflow/tensorflow)
 
+## This fork adds the Prisma-like iOS Offline Support. See [my blog](http://jeffxtang.github.io/cnn,/deep/learning,/ai,/ios/2017/02/19/fast-neural-style-on-ios.html) for details.
+
 Add styles from famous paintings to any photo in a fraction of a second! [You can even style videos!](#video-stylization)
 
 <p align = 'center'>
