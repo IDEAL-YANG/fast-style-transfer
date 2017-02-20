@@ -141,10 +141,9 @@ def ffwd(data_in, paths_out, checkpoint_dir, device_t='/gpu:0', batch_size=4):
     with g.as_default(), g.device(device_t), \
             tf.Session(config=soft_config) as sess:
         batch_shape = (batch_size,) + img_shape
-        img_placeholder = tf.placeholder(tf.float32, shape=batch_shape,
-                                         name='img_placeholder')
+        img_placeholder = tf.placeholder(tf.float32, shape=img_shape, name='img_placeholder')  # batch_shape
+        preds = transform.net(tf.expand_dims(img_placeholder, 0))
 
-        preds = transform.net(img_placeholder)
         saver = tf.train.Saver()
         if os.path.isdir(checkpoint_dir):
             ckpt = tf.train.get_checkpoint_state(checkpoint_dir)
@@ -154,6 +153,10 @@ def ffwd(data_in, paths_out, checkpoint_dir, device_t='/gpu:0', batch_size=4):
                 raise Exception("No checkpoint found...")
         else:
             saver.restore(sess, checkpoint_dir)
+
+        # before run evaluate.py, uncomment the following two lines to generate model to be frozen and deployed
+        # saver = tf.train.Saver()
+        # saver.save(sess, "checkpoints_ios/fns.ckpt")
 
         num_iters = int(len(paths_out)/batch_size)
         for i in range(num_iters):
@@ -174,18 +177,18 @@ def ffwd(data_in, paths_out, checkpoint_dir, device_t='/gpu:0', batch_size=4):
             _preds = sess.run(preds, feed_dict={img_placeholder:X})
             for j, path_out in enumerate(curr_batch_out):
                 save_img(path_out, _preds[j])
-                
+
         remaining_in = data_in[num_iters*batch_size:]
         remaining_out = paths_out[num_iters*batch_size:]
     if len(remaining_in) > 0:
-        ffwd(remaining_in, remaining_out, checkpoint_dir, 
+        ffwd(remaining_in, remaining_out, checkpoint_dir,
             device_t=device_t, batch_size=1)
 
 def ffwd_to_img(in_path, out_path, checkpoint_dir, device='/cpu:0'):
     paths_in, paths_out = [in_path], [out_path]
     ffwd(paths_in, paths_out, checkpoint_dir, batch_size=1, device_t=device)
 
-def ffwd_different_dimensions(in_path, out_path, checkpoint_dir, 
+def ffwd_different_dimensions(in_path, out_path, checkpoint_dir,
             device_t=DEVICE, batch_size=4):
     in_path_of_shape = defaultdict(list)
     out_path_of_shape = defaultdict(list)
@@ -197,7 +200,7 @@ def ffwd_different_dimensions(in_path, out_path, checkpoint_dir,
         out_path_of_shape[shape].append(out_image)
     for shape in in_path_of_shape:
         print('Processing images of shape %s' % shape)
-        ffwd(in_path_of_shape[shape], out_path_of_shape[shape], 
+        ffwd(in_path_of_shape[shape], out_path_of_shape[shape],
             checkpoint_dir, device_t, batch_size)
 
 def build_parser():
@@ -225,7 +228,7 @@ def build_parser():
                         metavar='BATCH_SIZE', default=BATCH_SIZE)
 
     parser.add_argument('--allow-different-dimensions', action='store_true',
-                        dest='allow_different_dimensions', 
+                        dest='allow_different_dimensions',
                         help='allow different image dimensions')
 
     return parser
@@ -256,7 +259,7 @@ def main():
         full_in = [os.path.join(opts.in_path,x) for x in files]
         full_out = [os.path.join(opts.out_path,x) for x in files]
         if opts.allow_different_dimensions:
-            ffwd_different_dimensions(full_in, full_out, opts.checkpoint_dir, 
+            ffwd_different_dimensions(full_in, full_out, opts.checkpoint_dir,
                     device_t=opts.device, batch_size=opts.batch_size)
         else :
             ffwd(full_in, full_out, opts.checkpoint_dir, device_t=opts.device,
