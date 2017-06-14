@@ -174,7 +174,7 @@ def ffwd(data_in, paths_out, checkpoint_dir, device_t='/gpu:0', batch_size=4):
             else:
                 X = data_in[pos:pos+batch_size]
 
-            _preds = sess.run(preds, feed_dict={img_placeholder:X})
+            _preds = sess.run(preds, feed_dict={img_placeholder:X[0]})
             for j, path_out in enumerate(curr_batch_out):
                 save_img(path_out, _preds[j])
 
