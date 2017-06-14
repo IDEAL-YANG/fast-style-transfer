@@ -212,7 +212,7 @@ static UIImage* tensorToBuffer(
         buffer[i] = n;
     }
     
-    UIImage *img = [RunModelViewController convertBitmapRGBA8ToUIImage:buffer withWidth: 420 withHeight: 560];
+    UIImage *img = [RunModelViewController convertBitmapRGBA8ToUIImage:buffer withWidth:wanted_width withHeight:wanted_height];
     UIImage *imgScaled = [img scaleToSize:CGSizeMake(image_width, image_height)];
     
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
@@ -292,8 +292,8 @@ UIImage* RunInferenceOnImage() {
   std::vector<tensorflow::uint8> image_data = LoadImageFromFile(
 	[image_path UTF8String], &image_width, &image_height, &image_channels);
     
-    const int wanted_width = 420;
-    const int wanted_height =560;
+    const int wanted_width = 300;
+    const int wanted_height =400;
   const int wanted_channels = 3;
   const float input_mean = 128.0f;
   const float input_std = 128.0f;
